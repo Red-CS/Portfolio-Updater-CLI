@@ -1,0 +1,25 @@
+{
+  "name": "portfolio-updater-cli",
+  "version": "1.0.0",
+  "description": "A Command-Line Interface used to update my portfolio's database",
+  "main": "src/cli.js",
+  "bin": {
+    "update": "src/cli.js"
+  },
+  "scripts": {
+    "dev": "node src/cli.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Red-CS/Portfolio-Updater-CLI.git"
+  },
+  "author": "Red Williams",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Red-CS/Portfolio-Updater-CLI/issues"
+  },
+  "homepage": "https://github.com/Red-CS/Portfolio-Updater-CLI#readme",
+  "dependencies": {
+    "inquirer": "^8.1.0"
+  }
+}
