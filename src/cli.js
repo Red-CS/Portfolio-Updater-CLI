@@ -6,8 +6,6 @@ const axios = require("axios");
 program.option("-y, --yes", "Skip confirmation check");
 program.parse(process.argv);
 
-const options = program.opts();
-
 // From https://fsymbols.com/generators/carty/
 console.log();
 console.log("  ███████╗██████╗░██╗███╗░░██╗░██████╗░███████╗");
@@ -18,9 +16,10 @@ console.log("  ██║░░░░░██║░░██║██║██�
 console.log("  ╚═╝░░░░░╚═╝░░╚═╝╚═╝╚═╝░░╚══╝░╚═════╝░╚══════╝");
 console.log();
 
-/**
- * Main Script
- */
+/* -------------------------------------------------------------------------- */
+/*                                 Main Script                                */
+/* -------------------------------------------------------------------------- */
+
 inquirer
   .prompt([
     {
@@ -62,27 +61,31 @@ inquirer
 
       // Add a project
       case 1:
-        getInput();
-        break;
+        handlePUT();
+        return;
 
       case 2:
-        patch();
-        break;
+        handlePATCH();
+        return;
 
       case 3:
-        // TODO: delete()
-        break;
+        // TODO - Write handleDELETE()
+        return;
 
       case 4:
         console.log("Exiting");
         return;
     }
+  })
+  .catch((error) => {
+    console.log(error);
   });
 
-async function getInput() {
+/* -------------------------- Request Body Handlers ------------------------- */
+
+async function handlePUT() {
   inquirer
     .prompt([
-      /* Pass your questions in here */
       {
         type: "input",
         message: "Enter the project name:",
@@ -122,35 +125,15 @@ async function getInput() {
         name: "featured",
       },
     ])
-    .then((answers) => {
-      // If auto-confirm is off
+    .then(async (answers) => {
+      // If requesting confirmation
       if (!program.opts().yes) {
         console.log("\n", answers, "\n");
 
-        //TODO: Change to verify funciton
         // Confirm
-        inquirer
-          .prompt([
-            {
-              type: "confirm",
-              message: "Is the information you enetered correct?",
-              name: "confirm",
-            },
-          ])
-          .then((answer) => {
-            // Exit if confirm was false
-            if (!answer.confirm) {
-              console.log("Returning");
-              return;
-            }
-            // console.log("Done");
-            putDB(answers);
-            return;
-          });
-      } else {
-        putDB(answers);
-        // console.log("Sending");
+        if (!(await confirm())) return;
       }
+      putDB(answers);
     })
     .catch((error) => {
       if (error.isTtyError) {
@@ -162,13 +145,58 @@ async function getInput() {
     });
 }
 
+async function handlePATCH() {
+  inquirer.prompt([
+    /* Pass your questions in here */
+    {
+      type: "input",
+      message: "Enter the project name:",
+      name: "project_name",
+    },
+    {
+      type: "input",
+      message: "Enter the project desription:",
+      name: "project_description",
+    },
+    {
+      type: "input",
+      message: "Enter the tech list:",
+      name: "tech_list",
+      suffix: " (comma-separated values)",
+      filter: (input) => {
+        input = input.split(",");
+        for (var i = 0; i < input.length; i++) {
+          input[i] = input[i].trim();
+        }
+        return input;
+      },
+    },
+    {
+      type: "input",
+      message: "Enter the Github link:",
+      name: "github_link",
+    },
+    {
+      type: "input",
+      message: "Enter the project link:",
+      name: "project_link",
+    },
+    {
+      type: "confirm",
+      message: "Is this a featured project?",
+      name: "featured",
+    },
+  ]);
+}
+
+/* --------------------------- API Request Methods -------------------------- */
+
 /**
  * Gets the content of the databse
  * @returns API GET Response from website
  */
 async function getDB() {
   var ui = new inquirer.ui.BottomBar();
-  // var display = true;
   displayLoadingBar(ui, true, "Fetching Content . . .");
   // During processing, update the bottom bar content to display a loader
   await axios
@@ -224,6 +252,38 @@ async function putDB(data) {
 }
 
 /**
+ * Puts a project in the database
+ * @returns API PUT Response from website
+ */
+async function patchDB(data) {
+  var ui = new inquirer.ui.BottomBar();
+  // During processing, update the bottom bar content to display a loader
+  displayLoadingBar(ui, true, "Updating project . . .");
+  await axios
+    .patch("https://redwilliams.dev/api/projects", data)
+    .then(function (response) {
+      ui.updateBottomBar("");
+      console.log(response.data);
+      displayLoadingBar(ui, false);
+    })
+    .catch((error) => {
+      ui.updateBottomBar("");
+      console.log("There was something wrong with your request:\n");
+      console.log(" ", error.message);
+      console.log();
+      console.log({
+        url: error.config.url,
+        method: error.config.method,
+        headers: error.config.headers,
+      });
+      displayLoadingBar(ui, false);
+    });
+  return;
+}
+
+/* ---------------------------- Helper Functions ---------------------------- */
+
+/**
  * Displays a Loading Bar at the bottom of the shell while fetching data
  * @param {inquirer.ui.BottomBar} ui UI Object
  * @param {boolean} display True when displaying the content, false when removing it
@@ -258,4 +318,16 @@ async function displayLoadingBar(ui, display, outputStr) {
   }
   ui.onForceClose();
   return;
+}
+
+async function confirm() {
+  // Confirm
+  const result = await inquirer.prompt([
+    {
+      type: "confirm",
+      message: "Is the information you enetered correct?",
+      name: "confirm",
+    },
+  ]);
+  return result.confirm;
 }
