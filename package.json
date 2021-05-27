@@ -4,7 +4,7 @@
   "description": "A Command-Line Interface used to update my portfolio's database",
   "main": "src/cli.js",
   "bin": {
-    "update": "src/cli.js"
+    "portfolio": "src/cli.js"
   },
   "scripts": {
     "dev": "node src/cli.js"
@@ -20,6 +20,8 @@
   },
   "homepage": "https://github.com/Red-CS/Portfolio-Updater-CLI#readme",
   "dependencies": {
+    "axios": "^0.21.1",
+    "commander": "^7.2.0",
     "inquirer": "^8.1.0"
   }
 }

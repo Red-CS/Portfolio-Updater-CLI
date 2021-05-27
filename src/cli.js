@@ -86,12 +86,12 @@ async function getInput() {
       {
         type: "input",
         message: "Enter the project name:",
-        name: "name",
+        name: "project_name",
       },
       {
         type: "input",
         message: "Enter the project desription:",
-        name: "description",
+        name: "project_description",
       },
       {
         type: "input",
@@ -177,6 +177,18 @@ async function getDB() {
       ui.updateBottomBar("");
       console.log(response.data);
       displayLoadingBar(ui, false);
+    })
+    .catch((error) => {
+      ui.updateBottomBar("");
+      console.log("There was something wrong with your request:\n");
+      console.log(" ", error.message);
+      console.log();
+      console.log({
+        url: error.config.url,
+        method: error.config.method,
+        headers: error.config.headers,
+      });
+      displayLoadingBar(ui, false);
     });
   return;
 }
@@ -185,16 +197,27 @@ async function getDB() {
  * Puts a project in the database
  * @returns API PUT Response from website
  */
-async function putDB() {
+async function putDB(data) {
   var ui = new inquirer.ui.BottomBar();
-  // var display = true;
-  displayLoadingBar(ui, true, "Updating database . . .");
   // During processing, update the bottom bar content to display a loader
+  displayLoadingBar(ui, true, "Updating database . . .");
   await axios
-    .get("https://animechan.vercel.app/api/random")
+    .put("https://redwilliams.dev/api/projects", data)
     .then(function (response) {
       ui.updateBottomBar("");
       console.log(response.data);
+      displayLoadingBar(ui, false);
+    })
+    .catch((error) => {
+      ui.updateBottomBar("");
+      console.log("There was something wrong with your request:\n");
+      console.log(" ", error.message);
+      console.log();
+      console.log({
+        url: error.config.url,
+        method: error.config.method,
+        headers: error.config.headers,
+      });
       displayLoadingBar(ui, false);
     });
   return;
